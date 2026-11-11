@@ -2,49 +2,35 @@ using HomeCarePH.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace HomeCarePH.Controllers
+namespace HomeCarePH.Controllers;
+
+[Route("diagnostics")]
+public class DiagnosticsController(ApplicationDbContext db, ILogger<DiagnosticsController> logger) : Controller
 {
-    [Route("diagnostics")]
-    public class DiagnosticsController : Controller
+    [HttpGet("health")]
+    [Produces("application/json")]
+    public async Task<IActionResult> Health(CancellationToken cancellationToken)
     {
-        private readonly ApplicationDbContext _db;
-        private readonly ILogger<DiagnosticsController> _logger;
-
-        public DiagnosticsController(
-            ApplicationDbContext db,
-            ILogger<DiagnosticsController> logger)
+        try
         {
-            _db = db;
-            _logger = logger;
+            var connected = await db.Database.CanConnectAsync(cancellationToken);
+            return connected
+                ? Ok(new { status = "ok", database = "connected", utc = DateTime.UtcNow })
+                : StatusCode(StatusCodes.Status503ServiceUnavailable, new { status = "degraded", database = "unavailable" });
         }
-
-        [HttpGet("database")]
-        public async Task<IActionResult> Database()
+        catch (Exception exception)
         {
-            try
-            {
-                var connected = await _db.Database.CanConnectAsync();
-
-                if (!connected)
-                {
-                    return StatusCode(
-                        503,
-                        "Database connection failed.");
-                }
-
-                return Ok(
-                    "HomeCare PH database connection successful.");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(
-                    ex,
-                    "Database connection test failed.");
-
-                return StatusCode(
-                    503,
-                    "Database connection failed.");
-            }
+            logger.LogError(exception, "Production health check failed.");
+            return StatusCode(StatusCodes.Status503ServiceUnavailable, new { status = "degraded", database = "unavailable" });
         }
+    }
+
+    [HttpGet("database")]
+    public async Task<IActionResult> Database(CancellationToken cancellationToken)
+    {
+        var result = await Health(cancellationToken);
+        return result is ObjectResult { StatusCode: StatusCodes.Status200OK }
+            ? Ok("HomeCare PH database connection successful.")
+            : StatusCode(StatusCodes.Status503ServiceUnavailable, "Database connection failed.");
     }
 }

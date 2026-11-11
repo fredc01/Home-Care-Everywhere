@@ -7,47 +7,48 @@
     <div>
         <p class="eyebrow">Care operations / overview</p>
         <h1>Good morning, care team.</h1>
-        <p class="hero-copy">A clear starting point for coordinating household care, resident needs, and daily visits.</p>
+        <p class="hero-copy">One calm view for the homes, maintenance work, warranties, and spending that need attention next.</p>
     </div>
-    <div class="status-pill @(Model.DatabaseAvailable ? "status-online" : "status-offline")">
+    <div class="status-pill @(Model.DatabaseAvailable ? "status-online" : "status-offline")" role="status">
         <span class="status-dot"></span>
-        @(Model.DatabaseAvailable ? "Database connected" : "Database setup pending")
+        @(Model.DatabaseAvailable ? "Live dashboard" : "Database setup pending")
     </div>
 </section>
 
 <section class="metric-grid" aria-label="Care operations summary">
-    <article class="metric-card metric-primary">
-        <div class="metric-icon">⌂</div>
-        <div><span class="metric-label">Households</span><strong>@Model.HouseholdCount</strong><span class="metric-meta">Registered care homes</span></div>
+    <article class="metric-card metric-primary"><div class="metric-icon">⌂</div><div><span class="metric-label">Households</span><strong>@Model.HouseholdCount</strong><span class="metric-meta">Registered care homes</span></div></article>
+    <article class="metric-card"><div class="metric-icon icon-blue">♥</div><div><span class="metric-label">Residents</span><strong>@Model.ResidentCount</strong><span class="metric-meta">People receiving care</span></div></article>
+    <article class="metric-card"><div class="metric-icon icon-gold">✦</div><div><span class="metric-label">Care team</span><strong>@Model.ActiveCaregiverCount</strong><span class="metric-meta">Active caregivers</span></div></article>
+    <article class="metric-card"><div class="metric-icon icon-purple">↗</div><div><span class="metric-label">Upcoming visits</span><strong>@Model.UpcomingVisitCount</strong><span class="metric-meta">Scheduled from now</span></div></article>
+</section>
+
+<section class="dashboard-columns dashboard-columns-main">
+    <article class="panel dashboard-section-panel">
+        <div class="panel-heading"><div><p class="eyebrow">Next 30 days</p><h2>Upcoming maintenance</h2></div><span class="panel-count">@Model.MaintenanceDueCount</span></div>
+        @if (Model.UpcomingMaintenance.Count == 0) { <p class="empty-inline">No maintenance tasks are due in the next 30 days.</p> }
+        else { <div class="dashboard-list">@foreach (var item in Model.UpcomingMaintenance) { <a class="dashboard-list-row" asp-controller="Maintenance" asp-action="Details" asp-route-id="@item.Id"><span class="list-icon @(item.IsOverdue ? "list-icon-alert" : "")">@(item.IsOverdue ? "!" : "✓")</span><span class="list-main"><b>@item.Title</b><small>@item.PropertyName@(item.ApplianceName == null ? "" : " · " + item.ApplianceName)</small></span><span class="list-date @(item.IsOverdue ? "text-alert" : "")">@(item.IsOverdue ? "Overdue" : item.DueDate.ToString("MMM d"))</span></a> }</div> }
+        <a class="panel-link" asp-controller="Maintenance" asp-action="Index">View maintenance plan <span>→</span></a>
     </article>
-    <article class="metric-card">
-        <div class="metric-icon icon-blue">♥</div>
-        <div><span class="metric-label">Residents</span><strong>@Model.ResidentCount</strong><span class="metric-meta">People receiving care</span></div>
-    </article>
-    <article class="metric-card">
-        <div class="metric-icon icon-gold">✦</div>
-        <div><span class="metric-label">Care team</span><strong>@Model.ActiveCaregiverCount</strong><span class="metric-meta">Active caregivers</span></div>
-    </article>
-    <article class="metric-card">
-        <div class="metric-icon icon-purple">↗</div>
-        <div><span class="metric-label">Upcoming visits</span><strong>@Model.UpcomingVisitCount</strong><span class="metric-meta">Scheduled from now</span></div>
+    <article class="panel dashboard-section-panel property-overview-panel">
+        <div class="panel-heading"><div><p class="eyebrow">Home base</p><h2>Property overview</h2></div><span class="panel-count">@Model.Properties.Count</span></div>
+        @if (Model.Properties.Count == 0) { <p class="empty-inline">Add a property to start tracking rooms, appliances, and care work.</p> }
+        else { <div class="dashboard-list">@foreach (var property in Model.Properties) { <a class="dashboard-list-row" asp-controller="Properties" asp-action="Details" asp-route-id="@property.Id"><span class="list-icon property-list-icon">⌂</span><span class="list-main"><b>@property.Name</b><small>@(string.IsNullOrWhiteSpace(property.Location) ? "Location not set" : property.Location)</small></span><span class="property-list-meta"><b>@property.ApplianceCount</b><small>appliances</small></span></a> }</div> }
+        <a class="panel-link" asp-controller="Properties" asp-action="Index">Open properties <span>→</span></a>
     </article>
 </section>
 
-<section class="dashboard-columns">
-    <article class="panel panel-large">
-        <div class="panel-heading"><div><p class="eyebrow">Phase 1 foundation</p><h2>Workspace ready</h2></div><span class="panel-mark">01</span></div>
-        <p class="panel-copy">HomeCarePH is set up with the core MVC structure, PostgreSQL connection, EF Core migrations, and the domain model needed for the next care-management features.</p>
-        <div class="foundation-list">
-            <div><span class="check">✓</span><span><b>Application foundation</b><small>ASP.NET Core MVC with shared layout and routing</small></span></div>
-            <div><span class="check">✓</span><span><b>Data foundation</b><small>PostgreSQL-ready EF Core context and migrations</small></span></div>
-            <div><span class="check">✓</span><span><b>Care domain</b><small>Households, residents, caregivers, and visits</small></span></div>
-        </div>
+<section class="dashboard-columns dashboard-columns-lower">
+    <article class="panel dashboard-section-panel">
+        <div class="panel-heading"><div><p class="eyebrow">Protect the home</p><h2>Warranty alerts</h2></div><span class="panel-count @(Model.WarrantyAlertCount > 0 ? "count-alert" : "")">@Model.WarrantyAlertCount</span></div>
+        @if (Model.WarrantyAlerts.Count == 0) { <p class="empty-inline">No warranties are expiring within the next 60 days.</p> }
+        else { <div class="alert-grid">@foreach (var alert in Model.WarrantyAlerts) { <a class="warranty-alert-card @(alert.DaysRemaining < 0 ? "is-expired" : "")" asp-controller="Appliances" asp-action="Details" asp-route-id="@alert.Id"><span class="alert-symbol">!</span><span><b>@alert.ApplianceName</b><small>@alert.PropertyName</small></span><strong>@alert.Status</strong></a> }</div> }
+        <a class="panel-link" asp-controller="Appliances" asp-action="Index">Review appliances <span>→</span></a>
     </article>
-    <article class="panel next-panel">
-        <p class="eyebrow">Next up</p><h2>Turn care plans into action.</h2>
-        <p>Phase 2 can build on this shell with household records, resident profiles, visit scheduling, and care notes.</p>
-        <div class="next-arrow">→</div>
+    <article class="panel dashboard-section-panel expense-panel">
+        <div class="panel-heading"><div><p class="eyebrow">Last 30 days</p><h2>Expense summary</h2></div><span class="expense-total">₱@Model.ExpenseTotalLast30Days.ToString("N0")</span></div>
+        @if (Model.ExpenseSummary.Count == 0) { <p class="empty-inline">No maintenance expenses recorded in the last 30 days.</p> }
+        else { <div class="expense-bars">@foreach (var expense in Model.ExpenseSummary) { var width = Model.ExpenseTotalLast30Days == 0 ? 0 : (int)Math.Round(expense.Amount / Model.ExpenseTotalLast30Days * 100); <div class="expense-bar-row"><span>@expense.Label</span><div class="expense-bar"><i style="width:@width%"></i></div><b>₱@expense.Amount.ToString("N0")</b></div> }</div> }
+        <a class="panel-link" asp-controller="Maintenance" asp-action="Index">View maintenance costs <span>→</span></a>
     </article>
 </section>
 
