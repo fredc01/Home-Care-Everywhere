@@ -1,8 +1,54 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@model HomeCarePH.Models.DashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<section class="dashboard-hero">
+    <div>
+        <p class="eyebrow">Care operations / overview</p>
+        <h1>Good morning, care team.</h1>
+        <p class="hero-copy">A clear starting point for coordinating household care, resident needs, and daily visits.</p>
+    </div>
+    <div class="status-pill @(Model.DatabaseAvailable ? "status-online" : "status-offline")">
+        <span class="status-dot"></span>
+        @(Model.DatabaseAvailable ? "Database connected" : "Database setup pending")
+    </div>
+</section>
+
+<section class="metric-grid" aria-label="Care operations summary">
+    <article class="metric-card metric-primary">
+        <div class="metric-icon">⌂</div>
+        <div><span class="metric-label">Households</span><strong>@Model.HouseholdCount</strong><span class="metric-meta">Registered care homes</span></div>
+    </article>
+    <article class="metric-card">
+        <div class="metric-icon icon-blue">♥</div>
+        <div><span class="metric-label">Residents</span><strong>@Model.ResidentCount</strong><span class="metric-meta">People receiving care</span></div>
+    </article>
+    <article class="metric-card">
+        <div class="metric-icon icon-gold">✦</div>
+        <div><span class="metric-label">Care team</span><strong>@Model.ActiveCaregiverCount</strong><span class="metric-meta">Active caregivers</span></div>
+    </article>
+    <article class="metric-card">
+        <div class="metric-icon icon-purple">↗</div>
+        <div><span class="metric-label">Upcoming visits</span><strong>@Model.UpcomingVisitCount</strong><span class="metric-meta">Scheduled from now</span></div>
+    </article>
+</section>
+
+<section class="dashboard-columns">
+    <article class="panel panel-large">
+        <div class="panel-heading"><div><p class="eyebrow">Phase 1 foundation</p><h2>Workspace ready</h2></div><span class="panel-mark">01</span></div>
+        <p class="panel-copy">HomeCarePH is set up with the core MVC structure, PostgreSQL connection, EF Core migrations, and the domain model needed for the next care-management features.</p>
+        <div class="foundation-list">
+            <div><span class="check">✓</span><span><b>Application foundation</b><small>ASP.NET Core MVC with shared layout and routing</small></span></div>
+            <div><span class="check">✓</span><span><b>Data foundation</b><small>PostgreSQL-ready EF Core context and migrations</small></span></div>
+            <div><span class="check">✓</span><span><b>Care domain</b><small>Households, residents, caregivers, and visits</small></span></div>
+        </div>
+    </article>
+    <article class="panel next-panel">
+        <p class="eyebrow">Next up</p><h2>Turn care plans into action.</h2>
+        <p>Phase 2 can build on this shell with household records, resident profiles, visit scheduling, and care notes.</p>
+        <div class="next-arrow">→</div>
+    </article>
+</section>
+
+<p class="last-updated">Dashboard snapshot · @Model.GeneratedAtUtc.ToLocalTime().ToString("MMM d, yyyy · h:mm tt")</p>
