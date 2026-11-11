@@ -1,0 +1,3 @@
+@model HomeCarePH.Domain.Entities.HouseholdInvitation
+@{ ViewData["Title"] = "Invitation email mismatch"; }
+<div class="auth-page"><div class="auth-card"><p class="eyebrow">Household invitation</p><h1>Use the invited account</h1><p class="auth-subtitle">This invitation was created for <strong>@Model.Email</strong>. Sign in with that email to accept it.</p><a class="primary-button button-link" asp-controller="Account" asp-action="Login">Sign in</a></div></div>

@@ -15,5 +15,9 @@ namespace HomeCarePH.Domain.Entities
         public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
 
         public ICollection<Resident> Residents { get; set; } = new List<Resident>();
+
+        public ICollection<HouseholdMembership> Memberships { get; set; } = new List<HouseholdMembership>();
+
+        public ICollection<HouseholdInvitation> Invitations { get; set; } = new List<HouseholdInvitation>();
     }
 }

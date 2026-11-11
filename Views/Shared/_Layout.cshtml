@@ -14,14 +14,14 @@
             <p class="nav-caption">Workspace</p>
             <nav class="side-nav" aria-label="Primary navigation">
                 <a class="nav-link active" asp-controller="Home" asp-action="Index"><span>▦</span> Dashboard</a>
-                <a class="nav-link" href="#households"><span>⌂</span> Households <span class="nav-soon">Soon</span></a>
+                <a class="nav-link" asp-controller="Households" asp-action="Index"><span>⌂</span> Households</a>
                 <a class="nav-link" href="#residents"><span>♥</span> Residents <span class="nav-soon">Soon</span></a>
                 <a class="nav-link" href="#care-team"><span>✦</span> Care team <span class="nav-soon">Soon</span></a>
             </nav>
             <div class="sidebar-footer"><div class="avatar">HC</div><div><b>HomeCarePH</b><small>Operations workspace</small></div></div>
         </aside>
         <main class="main-content">
-            <header class="topbar"><span class="topbar-label">Care coordination platform</span><a asp-controller="Home" asp-action="Privacy">Privacy</a></header>
+            <header class="topbar"><span class="topbar-label">Care coordination platform</span><div class="topbar-actions"><a asp-controller="Home" asp-action="Privacy">Privacy</a>@if (User.Identity?.IsAuthenticated == true) { <a asp-controller="Profile" asp-action="Index">Profile</a><form asp-controller="Account" asp-action="Logout" method="post"><button class="link-button" type="submit">Sign out</button></form> } else { <a asp-controller="Account" asp-action="Login">Sign in</a><a class="topbar-cta" asp-controller="Account" asp-action="Register">Create account</a> }</div></header>
             <div class="content-wrap">@RenderBody()</div>
             <footer class="app-footer">HomeCarePH <span>·</span> Foundation workspace</footer>
         </main>
