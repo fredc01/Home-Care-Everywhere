@@ -17,6 +17,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<RoomSpace> RoomSpaces => Set<RoomSpace>();
     public DbSet<PropertyPhoto> PropertyPhotos => Set<PropertyPhoto>();
     public DbSet<PropertyRecord> PropertyRecords => Set<PropertyRecord>();
+    public DbSet<Appliance> Appliances => Set<Appliance>();
+    public DbSet<ApplianceDocument> ApplianceDocuments => Set<ApplianceDocument>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -133,6 +135,31 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             entity.Property(x => x.RecordedAtUtc).HasColumnType("timestamp with time zone");
             entity.HasOne(x => x.Property).WithMany(x => x.Records).HasForeignKey(x => x.PropertyId).OnDelete(DeleteBehavior.Cascade);
             entity.HasOne(x => x.CreatedByUser).WithMany().HasForeignKey(x => x.CreatedByUserId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<Appliance>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Name).HasMaxLength(140).IsRequired();
+            entity.Property(x => x.Brand).HasMaxLength(120);
+            entity.Property(x => x.ModelNumber).HasMaxLength(120);
+            entity.Property(x => x.SerialNumber).HasMaxLength(120);
+            entity.Property(x => x.PurchasePrice).HasPrecision(12, 2);
+            entity.Property(x => x.Notes).HasMaxLength(1200);
+            entity.Property(x => x.CreatedAtUtc).HasColumnType("timestamp with time zone");
+            entity.Property(x => x.UpdatedAtUtc).HasColumnType("timestamp with time zone");
+            entity.HasOne(x => x.Property).WithMany(x => x.Appliances).HasForeignKey(x => x.PropertyId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<ApplianceDocument>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.FileName).HasMaxLength(255).IsRequired();
+            entity.Property(x => x.StoredPath).HasMaxLength(500).IsRequired();
+            entity.Property(x => x.ContentType).HasMaxLength(120);
+            entity.Property(x => x.DocumentType).HasConversion<string>().HasMaxLength(20);
+            entity.Property(x => x.UploadedAtUtc).HasColumnType("timestamp with time zone");
+            entity.HasOne(x => x.Appliance).WithMany(x => x.Documents).HasForeignKey(x => x.ApplianceId).OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

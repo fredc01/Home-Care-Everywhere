@@ -47,7 +47,7 @@ public class PropertiesController(ApplicationDbContext db, HouseholdAccessServic
 
     public async Task<IActionResult> Details(int id, CancellationToken cancellationToken)
     {
-        var property = await db.Properties.Include(x => x.Household).Include(x => x.Rooms).Include(x => x.Photos.OrderByDescending(p => p.UploadedAtUtc)).Include(x => x.Records.OrderByDescending(r => r.RecordedAtUtc)).ThenInclude(x => x.CreatedByUser).SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
+        var property = await db.Properties.Include(x => x.Household).Include(x => x.Rooms).Include(x => x.Photos.OrderByDescending(p => p.UploadedAtUtc)).Include(x => x.Records.OrderByDescending(r => r.RecordedAtUtc)).ThenInclude(x => x.CreatedByUser).Include(x => x.Appliances).SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
         if (property is null) return NotFound();
         var role = await access.GetRoleAsync(User, property.HouseholdId, cancellationToken);
         if (role is null) return Forbid();

@@ -22,6 +22,107 @@ namespace HomeCarePH.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("HomeCarePH.Domain.Entities.Appliance", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Brand")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ModelNumber")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(140)
+                        .HasColumnType("character varying(140)");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1200)
+                        .HasColumnType("character varying(1200)");
+
+                    b.Property<int>("PropertyId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateOnly?>("PurchaseDate")
+                        .HasColumnType("date");
+
+                    b.Property<decimal?>("PurchasePrice")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)");
+
+                    b.Property<string>("SerialNumber")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<DateTime>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateOnly?>("WarrantyEndDate")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly?>("WarrantyStartDate")
+                        .HasColumnType("date");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PropertyId");
+
+                    b.ToTable("Appliances");
+                });
+
+            modelBuilder.Entity("HomeCarePH.Domain.Entities.ApplianceDocument", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ApplianceId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ContentType")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<string>("DocumentType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<long>("FileSizeBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("StoredPath")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateTime>("UploadedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApplianceId");
+
+                    b.ToTable("ApplianceDocuments");
+                });
+
             modelBuilder.Entity("HomeCarePH.Domain.Entities.ApplicationUser", b =>
                 {
                     b.Property<string>("Id")
@@ -591,6 +692,28 @@ namespace HomeCarePH.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("HomeCarePH.Domain.Entities.Appliance", b =>
+                {
+                    b.HasOne("HomeCarePH.Domain.Entities.Property", "Property")
+                        .WithMany("Appliances")
+                        .HasForeignKey("PropertyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Property");
+                });
+
+            modelBuilder.Entity("HomeCarePH.Domain.Entities.ApplianceDocument", b =>
+                {
+                    b.HasOne("HomeCarePH.Domain.Entities.Appliance", "Appliance")
+                        .WithMany("Documents")
+                        .HasForeignKey("ApplianceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Appliance");
+                });
+
             modelBuilder.Entity("HomeCarePH.Domain.Entities.CareVisit", b =>
                 {
                     b.HasOne("HomeCarePH.Domain.Entities.Caregiver", "Caregiver")
@@ -762,6 +885,11 @@ namespace HomeCarePH.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("HomeCarePH.Domain.Entities.Appliance", b =>
+                {
+                    b.Navigation("Documents");
+                });
+
             modelBuilder.Entity("HomeCarePH.Domain.Entities.ApplicationUser", b =>
                 {
                     b.Navigation("HouseholdMemberships");
@@ -778,6 +906,8 @@ namespace HomeCarePH.Migrations
 
             modelBuilder.Entity("HomeCarePH.Domain.Entities.Property", b =>
                 {
+                    b.Navigation("Appliances");
+
                     b.Navigation("Photos");
 
                     b.Navigation("Records");

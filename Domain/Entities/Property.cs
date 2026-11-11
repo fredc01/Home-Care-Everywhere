@@ -35,4 +35,5 @@ public class Property
     public ICollection<RoomSpace> Rooms { get; set; } = new List<RoomSpace>();
     public ICollection<PropertyPhoto> Photos { get; set; } = new List<PropertyPhoto>();
     public ICollection<PropertyRecord> Records { get; set; } = new List<PropertyRecord>();
+    public ICollection<Appliance> Appliances { get; set; } = new List<Appliance>();
 }
