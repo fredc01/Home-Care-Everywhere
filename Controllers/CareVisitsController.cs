@@ -2,6 +2,7 @@ using System.Security.Claims;
 using HomeCarePH.Data;
 using HomeCarePH.Domain.Entities;
 using HomeCarePH.Models;
+using HomeCarePH.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -9,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 namespace HomeCarePH.Controllers;
 
 [Authorize]
-public class CareVisitsController(ApplicationDbContext db) : Controller
+public class CareVisitsController(ApplicationDbContext db, HouseholdAccessService access) : Controller
 {
     private const int PageSize = 15;
 
@@ -20,7 +21,11 @@ public class CareVisitsController(ApplicationDbContext db) : Controller
         var query = db.CareVisits.AsNoTracking().Where(x => x.Resident.Household.Memberships.Any(m => m.UserId == userId));
         query = history ? query.Where(x => x.ScheduledAtUtc < DateTime.UtcNow || x.Status == CareVisitStatus.Completed || x.Status == CareVisitStatus.Cancelled) : query.Where(x => x.ScheduledAtUtc >= DateTime.UtcNow && x.Status != CareVisitStatus.Cancelled);
         var total = await query.CountAsync(cancellationToken);
-        var visits = await query.OrderBy(x => x.ScheduledAtUtc).Skip((page - 1) * PageSize).Take(PageSize).Select(x => new CareVisitListItemViewModel { Id = x.Id, ResidentName = x.Resident.FullName, HouseholdName = x.Resident.Household.Name, CaregiverName = x.Caregiver.FullName, ScheduledAtUtc = x.ScheduledAtUtc, ExpectedDurationMinutes = x.ExpectedDurationMinutes, Status = x.Status }).ToListAsync(cancellationToken);
+        var visits = await query.OrderBy(x => x.ScheduledAtUtc).Skip((page - 1) * PageSize).Take(PageSize).Select(x => new CareVisitListItemViewModel { Id = x.Id, ResidentName = x.Resident.FullName, HouseholdName = x.Resident.Household.Name, CaregiverName = x.Caregiver.FullName, CaregiverIdForConflict = x.CaregiverId, ScheduledAtUtc = x.ScheduledAtUtc, ExpectedDurationMinutes = x.ExpectedDurationMinutes, Status = x.Status }).ToListAsync(cancellationToken);
+        var conflictVisits = new HashSet<int>();
+        foreach (var visit in visits)
+            if (await HasConflict(visit.CaregiverIdForConflict, visit.ScheduledAtUtc, visit.ExpectedDurationMinutes, visit.Id, cancellationToken)) conflictVisits.Add(visit.Id);
+        visits = visits.Select(x => new CareVisitListItemViewModel { Id = x.Id, ResidentName = x.ResidentName, HouseholdName = x.HouseholdName, CaregiverName = x.CaregiverName, ScheduledAtUtc = x.ScheduledAtUtc, ExpectedDurationMinutes = x.ExpectedDurationMinutes, Status = x.Status, IsConflict = conflictVisits.Contains(x.Id) }).ToList();
         return View(new CareVisitListViewModel { Visits = visits, History = history, Page = page, TotalCount = total });
     }
 
@@ -29,6 +34,7 @@ public class CareVisitsController(ApplicationDbContext db) : Controller
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(CareVisitFormViewModel model, CancellationToken cancellationToken)
     {
+        if (!await CanManageResident(model.ResidentId, cancellationToken)) return Forbid();
         if (!await ResidentIsAuthorized(model.ResidentId, cancellationToken)) return Forbid();
         if (!await CaregiverIsAssigned(model.CaregiverId, model.ResidentId, cancellationToken)) ModelState.AddModelError(nameof(model.CaregiverId), "Select a caregiver with an active assignment to this resident or household.");
         var startUtc = ToUtc(model.ScheduledAtLocal);
@@ -62,6 +68,8 @@ public class CareVisitsController(ApplicationDbContext db) : Controller
     {
         var visit = await AuthorizedVisits().SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
         if (visit is null) return NotFound();
+        if (!await CanManageResident(visit.ResidentId, cancellationToken)) return Forbid();
+        if (!await CanManageResident(model.ResidentId, cancellationToken)) return Forbid();
         if (!await ResidentIsAuthorized(model.ResidentId, cancellationToken)) return Forbid();
         if (!await CaregiverIsAssigned(model.CaregiverId, model.ResidentId, cancellationToken)) ModelState.AddModelError(nameof(model.CaregiverId), "Select a caregiver with an active assignment to this resident or household.");
         var startUtc = ToUtc(model.ScheduledAtLocal);
@@ -77,6 +85,13 @@ public class CareVisitsController(ApplicationDbContext db) : Controller
 
     private IQueryable<CareVisit> AuthorizedVisits() { var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!; return db.CareVisits.Where(x => x.Resident.Household.Memberships.Any(m => m.UserId == userId)); }
     private async Task<bool> ResidentIsAuthorized(int residentId, CancellationToken cancellationToken) => await db.Residents.AnyAsync(x => x.Id == residentId && x.IsActive && x.Household.Memberships.Any(m => m.UserId == User.FindFirstValue(ClaimTypes.NameIdentifier)), cancellationToken);
+    private async Task<bool> CanManageResident(int residentId, CancellationToken cancellationToken)
+    {
+        var householdId = await db.Residents.Where(x => x.Id == residentId).Select(x => (int?)x.HouseholdId).SingleOrDefaultAsync(cancellationToken);
+        if (!householdId.HasValue) return false;
+        var role = await access.GetRoleAsync(User, householdId.Value, cancellationToken);
+        return role.HasValue && HouseholdAccessService.CanManageCare(role.Value);
+    }
     private async Task<bool> CaregiverIsAssigned(int caregiverId, int residentId, CancellationToken cancellationToken) => await db.CaregiverAssignments.AnyAsync(x => x.CaregiverId == caregiverId && x.IsActive && x.Resident != null && x.ResidentId == residentId || x.CaregiverId == caregiverId && x.IsActive && x.ResidentId == null && x.HouseholdId == db.Residents.Where(r => r.Id == residentId).Select(r => r.HouseholdId).FirstOrDefault(), cancellationToken);
     private async Task<bool> HasConflict(int caregiverId, DateTime startUtc, int durationMinutes, int? excludedVisitId, CancellationToken cancellationToken)
     {

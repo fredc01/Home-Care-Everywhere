@@ -20,4 +20,5 @@ public class HouseholdAccessService(ApplicationDbContext db)
     public static bool CanManageMembers(HouseholdRole role) => role is HouseholdRole.Owner or HouseholdRole.Admin;
 
     public static bool CanEditProperty(HouseholdRole role) => role is HouseholdRole.Owner or HouseholdRole.Admin or HouseholdRole.Member;
+    public static bool CanManageCare(HouseholdRole role) => role is HouseholdRole.Owner or HouseholdRole.Admin or HouseholdRole.Member;
 }

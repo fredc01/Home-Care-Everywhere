@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Security.Claims;
 using HomeCarePH.Data;
 using HomeCarePH.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -6,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HomeCarePH.Controllers;
 
+[Microsoft.AspNetCore.Authorization.Authorize]
 public class HomeController(ApplicationDbContext db, ILogger<HomeController> logger) : Controller
 {
     public async Task<IActionResult> Index(CancellationToken cancellationToken)
@@ -15,11 +17,13 @@ public class HomeController(ApplicationDbContext db, ILogger<HomeController> log
         var warrantyCutoff = today.AddDays(60);
         var last30Days = DateTime.UtcNow.AddDays(-30);
         var model = new DashboardViewModel();
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         try
         {
+            var authorizedHouseholds = db.HouseholdMemberships.Where(x => x.UserId == userId).Select(x => x.HouseholdId);
             var maintenance = await db.MaintenanceTasks.AsNoTracking()
-                .Where(x => x.IsActive && x.NextDueDate <= thirtyDaysFromToday)
+                .Where(x => authorizedHouseholds.Contains(x.Property.HouseholdId) && x.IsActive && x.NextDueDate <= thirtyDaysFromToday)
                 .OrderBy(x => x.NextDueDate)
                 .Take(6)
                 .Select(x => new DashboardViewModel.MaintenanceSummaryItem(
@@ -28,6 +32,7 @@ public class HomeController(ApplicationDbContext db, ILogger<HomeController> log
                 .ToListAsync(cancellationToken);
 
             var propertyRows = await db.Properties.AsNoTracking()
+                .Where(x => authorizedHouseholds.Contains(x.HouseholdId))
                 .OrderBy(x => x.Name)
                 .Take(8)
                 .Select(x => new { x.Id, x.Name, x.City, x.Province, RoomCount = x.Rooms.Count, ApplianceCount = x.Appliances.Count, OpenMaintenanceCount = x.MaintenanceTasks.Count(task => task.IsActive && task.NextDueDate <= thirtyDaysFromToday) })
@@ -37,7 +42,7 @@ public class HomeController(ApplicationDbContext db, ILogger<HomeController> log
                 x.RoomCount, x.ApplianceCount, x.OpenMaintenanceCount)).ToList();
 
             var warrantyEntities = await db.Appliances.AsNoTracking()
-                .Where(x => x.WarrantyEndDate != null && x.WarrantyEndDate <= warrantyCutoff)
+                .Where(x => authorizedHouseholds.Contains(x.Property.HouseholdId) && x.WarrantyEndDate != null && x.WarrantyEndDate <= warrantyCutoff)
                 .OrderBy(x => x.WarrantyEndDate)
                 .Take(8)
                 .Select(x => new { x.Id, x.Name, PropertyName = x.Property.Name, x.WarrantyEndDate })
@@ -52,7 +57,7 @@ public class HomeController(ApplicationDbContext db, ILogger<HomeController> log
             }).ToList();
 
             var expenseRows = await db.MaintenanceExpenses.AsNoTracking()
-                .Where(x => x.ExpenseDateUtc >= last30Days)
+                .Where(x => authorizedHouseholds.Contains(x.MaintenanceCompletion.MaintenanceTask.Property.HouseholdId) && x.ExpenseDateUtc >= last30Days)
                 .OrderByDescending(x => x.ExpenseDateUtc)
                 .Select(x => new { x.Amount, x.ExpenseDateUtc })
                 .ToListAsync(cancellationToken);
@@ -67,10 +72,10 @@ public class HomeController(ApplicationDbContext db, ILogger<HomeController> log
 
             model = new DashboardViewModel
             {
-                HouseholdCount = await db.Households.CountAsync(cancellationToken),
-                ResidentCount = await db.Residents.CountAsync(cancellationToken),
-                ActiveCaregiverCount = await db.Caregivers.CountAsync(x => x.IsActive, cancellationToken),
-                UpcomingVisitCount = await db.CareVisits.CountAsync(x => x.ScheduledAtUtc >= DateTime.UtcNow && x.Status != Domain.Entities.CareVisitStatus.Cancelled, cancellationToken),
+                HouseholdCount = await db.HouseholdMemberships.CountAsync(x => x.UserId == userId, cancellationToken),
+                ResidentCount = await db.Residents.CountAsync(x => authorizedHouseholds.Contains(x.HouseholdId), cancellationToken),
+                ActiveCaregiverCount = await db.Caregivers.CountAsync(x => x.IsActive && x.Assignments.Any(a => authorizedHouseholds.Contains(a.HouseholdId)), cancellationToken),
+                UpcomingVisitCount = await db.CareVisits.CountAsync(x => authorizedHouseholds.Contains(x.Resident.HouseholdId) && x.ScheduledAtUtc >= DateTime.UtcNow && x.Status != Domain.Entities.CareVisitStatus.Cancelled, cancellationToken),
                 UpcomingMaintenance = maintenance,
                 Properties = properties,
                 WarrantyAlerts = warrantyAlerts,

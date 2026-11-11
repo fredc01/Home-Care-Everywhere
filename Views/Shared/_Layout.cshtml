@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -15,13 +15,14 @@
             <a class="brand" asp-controller="Home" asp-action="Index"><span class="brand-mark">+</span><span>HomeCare<span class="brand-accent">PH</span></span></a>
             <p class="nav-caption">Workspace</p>
             <nav class="side-nav" aria-label="Primary navigation">
-                <a class="nav-link active" asp-controller="Home" asp-action="Index"><span>▦</span> Dashboard</a>
-                <a class="nav-link" asp-controller="Households" asp-action="Index"><span>⌂</span> Households</a>
-                <a class="nav-link" asp-controller="Marketplace" asp-action="Repairs"><span>⚒</span> Repairs</a>
-                <a class="nav-link" asp-controller="Marketplace" asp-action="Providers"><span>♧</span> Providers</a>
-                <a class="nav-link" asp-controller="Residents" asp-action="Index"><span>♥</span> Residents</a>
-                <a class="nav-link" asp-controller="Caregivers" asp-action="Index"><span>✦</span> Care team</a>
-                <a class="nav-link" asp-controller="CareVisits" asp-action="Index"><span>↗</span> Visits</a>
+                @{ var currentController = ViewContext.RouteData.Values["controller"]?.ToString(); }
+                <a class="nav-link @(currentController == "Home" ? "active" : "")" asp-controller="Home" asp-action="Index"><span>▦</span> Dashboard</a>
+                <a class="nav-link @(currentController == "Households" ? "active" : "")" asp-controller="Households" asp-action="Index"><span>⌂</span> Households</a>
+                <a class="nav-link @(currentController == "Marketplace" ? "active" : "")" asp-controller="Marketplace" asp-action="Repairs"><span>⚒</span> Repairs</a>
+                <a class="nav-link @(currentController == "Marketplace" ? "active" : "")" asp-controller="Marketplace" asp-action="Providers"><span>♧</span> Providers</a>
+                <a class="nav-link @(currentController == "Residents" ? "active" : "")" asp-controller="Residents" asp-action="Index"><span>♥</span> Residents</a>
+                <a class="nav-link @(currentController == "Caregivers" ? "active" : "")" asp-controller="Caregivers" asp-action="Index"><span>✦</span> Care team</a>
+                <a class="nav-link @(currentController == "CareVisits" ? "active" : "")" asp-controller="CareVisits" asp-action="Index"><span>↗</span> Visits</a>
             </nav>
             <div class="sidebar-footer"><div class="avatar">HC</div><div><b>HomeCarePH</b><small>Operations workspace</small></div></div>
         </aside>

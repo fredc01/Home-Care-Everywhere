@@ -1,4 +1,4 @@
-﻿@model HomeCarePH.Models.DashboardViewModel
+@model HomeCarePH.Models.DashboardViewModel
 @{
     ViewData["Title"] = "Dashboard";
 }
@@ -17,9 +17,9 @@
 
 <section class="metric-grid" aria-label="Care operations summary">
     <article class="metric-card metric-primary"><div class="metric-icon">⌂</div><div><span class="metric-label">Households</span><strong>@Model.HouseholdCount</strong><span class="metric-meta">Registered care homes</span></div></article>
-    <article class="metric-card"><div class="metric-icon icon-blue">♥</div><div><span class="metric-label">Residents</span><strong>@Model.ResidentCount</strong><span class="metric-meta">People receiving care</span></div></article>
-    <article class="metric-card"><div class="metric-icon icon-gold">✦</div><div><span class="metric-label">Care team</span><strong>@Model.ActiveCaregiverCount</strong><span class="metric-meta">Active caregivers</span></div></article>
-    <article class="metric-card"><div class="metric-icon icon-purple">↗</div><div><span class="metric-label">Upcoming visits</span><strong>@Model.UpcomingVisitCount</strong><span class="metric-meta">Scheduled from now</span></div></article>
+    <a class="metric-card" asp-controller="Residents" asp-action="Index"><div class="metric-icon icon-blue">♥</div><div><span class="metric-label">Residents</span><strong>@Model.ResidentCount</strong><span class="metric-meta">People receiving care</span></div></a>
+    <a class="metric-card" asp-controller="Caregivers" asp-action="Index"><div class="metric-icon icon-gold">✦</div><div><span class="metric-label">Care team</span><strong>@Model.ActiveCaregiverCount</strong><span class="metric-meta">Active caregivers</span></div></a>
+    <a class="metric-card" asp-controller="CareVisits" asp-action="Index"><div class="metric-icon icon-purple">↗</div><div><span class="metric-label">Upcoming visits</span><strong>@Model.UpcomingVisitCount</strong><span class="metric-meta">Scheduled from now</span></div></a>
 </section>
 
 <section class="dashboard-columns dashboard-columns-main">

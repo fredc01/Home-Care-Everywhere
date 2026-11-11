@@ -22,6 +22,7 @@ public class CareVisitListItemViewModel
     public int ExpectedDurationMinutes { get; init; }
     public CareVisitStatus Status { get; init; }
     public bool IsConflict { get; init; }
+    public int CaregiverIdForConflict { get; init; }
 }
 public class CareVisitFormViewModel
 {

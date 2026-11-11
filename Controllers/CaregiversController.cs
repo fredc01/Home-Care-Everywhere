@@ -123,7 +123,11 @@ public class CaregiversController(ApplicationDbContext db, HouseholdAccessServic
     }
 
     private async Task<bool> CanAccessCaregiver(int id, CancellationToken cancellationToken) { var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!; return await db.Caregivers.AnyAsync(x => x.Id == id && (x.Assignments.Any(a => a.Household.Memberships.Any(m => m.UserId == userId)) || db.CareVisits.Any(v => v.CaregiverId == id && v.Resident.Household.Memberships.Any(m => m.UserId == userId))), cancellationToken); }
-    private async Task<bool> CanAccessHousehold(int householdId, CancellationToken cancellationToken) => await access.GetRoleAsync(User, householdId, cancellationToken) is not null;
+    private async Task<bool> CanAccessHousehold(int householdId, CancellationToken cancellationToken)
+    {
+        var role = await access.GetRoleAsync(User, householdId, cancellationToken);
+        return role.HasValue && HouseholdAccessService.CanManageCare(role.Value);
+    }
     private async Task<bool> ResidentBelongsToAuthorizedHousehold(int residentId, int householdId, CancellationToken cancellationToken) => await db.Residents.AnyAsync(x => x.Id == residentId && x.HouseholdId == householdId && x.Household.Memberships.Any(m => m.UserId == User.FindFirstValue(ClaimTypes.NameIdentifier)), cancellationToken);
     private async Task<List<CareTeamHouseholdOption>> GetHouseholds(CancellationToken cancellationToken) => await db.HouseholdMemberships.Where(x => x.UserId == User.FindFirstValue(ClaimTypes.NameIdentifier)).OrderBy(x => x.Household.Name).Select(x => new CareTeamHouseholdOption(x.HouseholdId, x.Household.Name)).ToListAsync(cancellationToken);
     private async Task<List<CareTeamResidentOption>> GetResidents(int? householdId, CancellationToken cancellationToken) => await db.Residents.Where(x => x.IsActive && (!householdId.HasValue || x.HouseholdId == householdId) && x.Household.Memberships.Any(m => m.UserId == User.FindFirstValue(ClaimTypes.NameIdentifier))).OrderBy(x => x.FullName).Select(x => new CareTeamResidentOption(x.Id, x.HouseholdId, x.FullName)).ToListAsync(cancellationToken);
