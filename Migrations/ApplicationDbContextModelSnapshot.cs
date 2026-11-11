@@ -195,6 +195,49 @@ namespace HomeCarePH.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("HomeCarePH.Domain.Entities.Booking", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1200)
+                        .HasColumnType("character varying(1200)");
+
+                    b.Property<int?>("QuotationId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("RepairRequestId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("ScheduledStartUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("ServiceProviderId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("QuotationId");
+
+                    b.HasIndex("RepairRequestId");
+
+                    b.HasIndex("ServiceProviderId");
+
+                    b.ToTable("Bookings");
+                });
+
             modelBuilder.Entity("HomeCarePH.Domain.Entities.CareVisit", b =>
                 {
                     b.Property<int>("Id")
@@ -615,6 +658,143 @@ namespace HomeCarePH.Migrations
                     b.ToTable("PropertyRecords");
                 });
 
+            modelBuilder.Entity("HomeCarePH.Domain.Entities.Quotation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(1200)
+                        .HasColumnType("character varying(1200)");
+
+                    b.Property<int>("RepairRequestId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ServiceProviderId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<DateTime>("SubmittedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("ValidUntilUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RepairRequestId");
+
+                    b.HasIndex("ServiceProviderId");
+
+                    b.ToTable("Quotations");
+                });
+
+            modelBuilder.Entity("HomeCarePH.Domain.Entities.RepairFeedback", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Comments")
+                        .HasMaxLength(1200)
+                        .HasColumnType("character varying(1200)");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Rating")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("RepairRequestId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ServiceProviderId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("SubmittedByUserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RepairRequestId");
+
+                    b.HasIndex("ServiceProviderId");
+
+                    b.HasIndex("SubmittedByUserId");
+
+                    b.ToTable("RepairFeedback");
+                });
+
+            modelBuilder.Entity("HomeCarePH.Domain.Entities.RepairRequest", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("ApplianceId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(2500)
+                        .HasColumnType("character varying(2500)");
+
+                    b.Property<DateOnly?>("PreferredDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Priority")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<int>("PropertyId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("RequestedByUserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(160)
+                        .HasColumnType("character varying(160)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApplianceId");
+
+                    b.HasIndex("PropertyId");
+
+                    b.HasIndex("RequestedByUserId");
+
+                    b.ToTable("RepairRequests");
+                });
+
             modelBuilder.Entity("HomeCarePH.Domain.Entities.Resident", b =>
                 {
                     b.Property<int>("Id")
@@ -680,6 +860,86 @@ namespace HomeCarePH.Migrations
                     b.HasIndex("PropertyId");
 
                     b.ToTable("RoomSpaces");
+                });
+
+            modelBuilder.Entity("HomeCarePH.Domain.Entities.ServiceArea", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("City")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("PostalCode")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("Province")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<int?>("RadiusKm")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ServiceProviderId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ServiceProviderId");
+
+                    b.ToTable("ServiceAreas");
+                });
+
+            modelBuilder.Entity("HomeCarePH.Domain.Entities.ServiceProvider", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("BusinessName")
+                        .IsRequired()
+                        .HasMaxLength(160)
+                        .HasColumnType("character varying(160)");
+
+                    b.Property<string>("ContactName")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1200)
+                        .HasColumnType("character varying(1200)");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<string>("Trade")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ServiceProviders");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -836,6 +1096,32 @@ namespace HomeCarePH.Migrations
                     b.Navigation("Appliance");
                 });
 
+            modelBuilder.Entity("HomeCarePH.Domain.Entities.Booking", b =>
+                {
+                    b.HasOne("HomeCarePH.Domain.Entities.Quotation", "Quotation")
+                        .WithMany()
+                        .HasForeignKey("QuotationId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("HomeCarePH.Domain.Entities.RepairRequest", "RepairRequest")
+                        .WithMany("Bookings")
+                        .HasForeignKey("RepairRequestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("HomeCarePH.Domain.Entities.ServiceProvider", "ServiceProvider")
+                        .WithMany()
+                        .HasForeignKey("ServiceProviderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Quotation");
+
+                    b.Navigation("RepairRequest");
+
+                    b.Navigation("ServiceProvider");
+                });
+
             modelBuilder.Entity("HomeCarePH.Domain.Entities.CareVisit", b =>
                 {
                     b.HasOne("HomeCarePH.Domain.Entities.Caregiver", "Caregiver")
@@ -990,6 +1276,78 @@ namespace HomeCarePH.Migrations
                     b.Navigation("Property");
                 });
 
+            modelBuilder.Entity("HomeCarePH.Domain.Entities.Quotation", b =>
+                {
+                    b.HasOne("HomeCarePH.Domain.Entities.RepairRequest", "RepairRequest")
+                        .WithMany("Quotations")
+                        .HasForeignKey("RepairRequestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("HomeCarePH.Domain.Entities.ServiceProvider", "ServiceProvider")
+                        .WithMany("Quotations")
+                        .HasForeignKey("ServiceProviderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("RepairRequest");
+
+                    b.Navigation("ServiceProvider");
+                });
+
+            modelBuilder.Entity("HomeCarePH.Domain.Entities.RepairFeedback", b =>
+                {
+                    b.HasOne("HomeCarePH.Domain.Entities.RepairRequest", "RepairRequest")
+                        .WithMany("Feedback")
+                        .HasForeignKey("RepairRequestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("HomeCarePH.Domain.Entities.ServiceProvider", "ServiceProvider")
+                        .WithMany()
+                        .HasForeignKey("ServiceProviderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("HomeCarePH.Domain.Entities.ApplicationUser", "SubmittedByUser")
+                        .WithMany()
+                        .HasForeignKey("SubmittedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("RepairRequest");
+
+                    b.Navigation("ServiceProvider");
+
+                    b.Navigation("SubmittedByUser");
+                });
+
+            modelBuilder.Entity("HomeCarePH.Domain.Entities.RepairRequest", b =>
+                {
+                    b.HasOne("HomeCarePH.Domain.Entities.Appliance", "Appliance")
+                        .WithMany()
+                        .HasForeignKey("ApplianceId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("HomeCarePH.Domain.Entities.Property", "Property")
+                        .WithMany()
+                        .HasForeignKey("PropertyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("HomeCarePH.Domain.Entities.ApplicationUser", "RequestedByUser")
+                        .WithMany()
+                        .HasForeignKey("RequestedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Appliance");
+
+                    b.Navigation("Property");
+
+                    b.Navigation("RequestedByUser");
+                });
+
             modelBuilder.Entity("HomeCarePH.Domain.Entities.Resident", b =>
                 {
                     b.HasOne("HomeCarePH.Domain.Entities.Household", "Household")
@@ -1010,6 +1368,17 @@ namespace HomeCarePH.Migrations
                         .IsRequired();
 
                     b.Navigation("Property");
+                });
+
+            modelBuilder.Entity("HomeCarePH.Domain.Entities.ServiceArea", b =>
+                {
+                    b.HasOne("HomeCarePH.Domain.Entities.ServiceProvider", "ServiceProvider")
+                        .WithMany("ServiceAreas")
+                        .HasForeignKey("ServiceProviderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ServiceProvider");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -1103,6 +1472,22 @@ namespace HomeCarePH.Migrations
                     b.Navigation("Records");
 
                     b.Navigation("Rooms");
+                });
+
+            modelBuilder.Entity("HomeCarePH.Domain.Entities.RepairRequest", b =>
+                {
+                    b.Navigation("Bookings");
+
+                    b.Navigation("Feedback");
+
+                    b.Navigation("Quotations");
+                });
+
+            modelBuilder.Entity("HomeCarePH.Domain.Entities.ServiceProvider", b =>
+                {
+                    b.Navigation("Quotations");
+
+                    b.Navigation("ServiceAreas");
                 });
 #pragma warning restore 612, 618
         }

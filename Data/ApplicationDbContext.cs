@@ -22,6 +22,12 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<MaintenanceTask> MaintenanceTasks => Set<MaintenanceTask>();
     public DbSet<MaintenanceCompletion> MaintenanceCompletions => Set<MaintenanceCompletion>();
     public DbSet<MaintenanceExpense> MaintenanceExpenses => Set<MaintenanceExpense>();
+    public DbSet<HomeCarePH.Domain.Entities.ServiceProvider> ServiceProviders => Set<HomeCarePH.Domain.Entities.ServiceProvider>();
+    public DbSet<ServiceArea> ServiceAreas => Set<ServiceArea>();
+    public DbSet<RepairRequest> RepairRequests => Set<RepairRequest>();
+    public DbSet<Quotation> Quotations => Set<Quotation>();
+    public DbSet<Booking> Bookings => Set<Booking>();
+    public DbSet<RepairFeedback> RepairFeedback => Set<RepairFeedback>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -197,5 +203,12 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             entity.Property(x => x.ExpenseDateUtc).HasColumnType("timestamp with time zone");
             entity.HasOne(x => x.MaintenanceCompletion).WithMany(x => x.Expenses).HasForeignKey(x => x.MaintenanceCompletionId).OnDelete(DeleteBehavior.Cascade);
         });
+
+        modelBuilder.Entity<HomeCarePH.Domain.Entities.ServiceProvider>(entity => { entity.HasKey(x => x.Id); entity.Property(x => x.BusinessName).HasMaxLength(160).IsRequired(); entity.Property(x => x.ContactName).HasMaxLength(120).IsRequired(); entity.Property(x => x.Email).HasMaxLength(256).IsRequired(); entity.Property(x => x.PhoneNumber).HasMaxLength(40); entity.Property(x => x.Description).HasMaxLength(1200); entity.Property(x => x.Trade).HasMaxLength(120); entity.Property(x => x.CreatedAtUtc).HasColumnType("timestamp with time zone"); });
+        modelBuilder.Entity<ServiceArea>(entity => { entity.HasKey(x => x.Id); entity.Property(x => x.City).HasMaxLength(100).IsRequired(); entity.Property(x => x.Province).HasMaxLength(100); entity.Property(x => x.PostalCode).HasMaxLength(20); entity.HasOne(x => x.ServiceProvider).WithMany(x => x.ServiceAreas).HasForeignKey(x => x.ServiceProviderId).OnDelete(DeleteBehavior.Cascade); });
+        modelBuilder.Entity<RepairRequest>(entity => { entity.HasKey(x => x.Id); entity.Property(x => x.Title).HasMaxLength(160).IsRequired(); entity.Property(x => x.Description).HasMaxLength(2500).IsRequired(); entity.Property(x => x.Priority).HasConversion<string>().HasMaxLength(20); entity.Property(x => x.Status).HasConversion<string>().HasMaxLength(20); entity.Property(x => x.CreatedAtUtc).HasColumnType("timestamp with time zone"); entity.HasOne(x => x.Property).WithMany().HasForeignKey(x => x.PropertyId).OnDelete(DeleteBehavior.Cascade); entity.HasOne(x => x.Appliance).WithMany().HasForeignKey(x => x.ApplianceId).OnDelete(DeleteBehavior.SetNull); entity.HasOne(x => x.RequestedByUser).WithMany().HasForeignKey(x => x.RequestedByUserId).OnDelete(DeleteBehavior.Restrict); });
+        modelBuilder.Entity<Quotation>(entity => { entity.HasKey(x => x.Id); entity.Property(x => x.Amount).HasPrecision(12, 2); entity.Property(x => x.Description).HasMaxLength(1200).IsRequired(); entity.Property(x => x.Status).HasConversion<string>().HasMaxLength(20); entity.Property(x => x.ValidUntilUtc).HasColumnType("timestamp with time zone"); entity.Property(x => x.SubmittedAtUtc).HasColumnType("timestamp with time zone"); entity.HasOne(x => x.RepairRequest).WithMany(x => x.Quotations).HasForeignKey(x => x.RepairRequestId).OnDelete(DeleteBehavior.Cascade); entity.HasOne(x => x.ServiceProvider).WithMany(x => x.Quotations).HasForeignKey(x => x.ServiceProviderId).OnDelete(DeleteBehavior.Restrict); });
+        modelBuilder.Entity<Booking>(entity => { entity.HasKey(x => x.Id); entity.Property(x => x.Status).HasConversion<string>().HasMaxLength(20); entity.Property(x => x.ScheduledStartUtc).HasColumnType("timestamp with time zone"); entity.Property(x => x.Notes).HasMaxLength(1200); entity.Property(x => x.CreatedAtUtc).HasColumnType("timestamp with time zone"); entity.HasOne(x => x.RepairRequest).WithMany(x => x.Bookings).HasForeignKey(x => x.RepairRequestId).OnDelete(DeleteBehavior.Cascade); entity.HasOne(x => x.ServiceProvider).WithMany().HasForeignKey(x => x.ServiceProviderId).OnDelete(DeleteBehavior.Restrict); entity.HasOne(x => x.Quotation).WithMany().HasForeignKey(x => x.QuotationId).OnDelete(DeleteBehavior.SetNull); });
+        modelBuilder.Entity<RepairFeedback>(entity => { entity.HasKey(x => x.Id); entity.Property(x => x.Comments).HasMaxLength(1200); entity.Property(x => x.CreatedAtUtc).HasColumnType("timestamp with time zone"); entity.HasOne(x => x.RepairRequest).WithMany(x => x.Feedback).HasForeignKey(x => x.RepairRequestId).OnDelete(DeleteBehavior.Cascade); entity.HasOne(x => x.ServiceProvider).WithMany().HasForeignKey(x => x.ServiceProviderId).OnDelete(DeleteBehavior.Restrict); entity.HasOne(x => x.SubmittedByUser).WithMany().HasForeignKey(x => x.SubmittedByUserId).OnDelete(DeleteBehavior.Restrict); });
     }
 }
