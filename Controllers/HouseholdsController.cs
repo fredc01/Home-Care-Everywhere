@@ -46,7 +46,7 @@ public class HouseholdsController(ApplicationDbContext db, UserManager<Applicati
     }
 
     [HttpPost, ValidateAntiForgeryToken]
-    public async Task<IActionResult> Invite(InviteMemberViewModel model)
+    public async Task<IActionResult> Invite([Bind(Prefix = "Invite")] InviteMemberViewModel model)
     {
         var role = await access.GetRoleAsync(User, model.HouseholdId);
         if (role is null) return Forbid();
