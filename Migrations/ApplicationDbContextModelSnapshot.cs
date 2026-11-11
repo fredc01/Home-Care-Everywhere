@@ -360,6 +360,128 @@ namespace HomeCarePH.Migrations
                     b.ToTable("HouseholdMemberships");
                 });
 
+            modelBuilder.Entity("HomeCarePH.Domain.Entities.MaintenanceCompletion", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CompletedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CompletedByUserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("MaintenanceTaskId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1200)
+                        .HasColumnType("character varying(1200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompletedByUserId");
+
+                    b.HasIndex("MaintenanceTaskId");
+
+                    b.ToTable("MaintenanceCompletions");
+                });
+
+            modelBuilder.Entity("HomeCarePH.Domain.Entities.MaintenanceExpense", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<DateTime>("ExpenseDateUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("MaintenanceCompletionId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Vendor")
+                        .HasMaxLength(160)
+                        .HasColumnType("character varying(160)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MaintenanceCompletionId");
+
+                    b.ToTable("MaintenanceExpenses");
+                });
+
+            modelBuilder.Entity("HomeCarePH.Domain.Entities.MaintenanceTask", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("ApplianceId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedByUserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int?>("CustomIntervalDays")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1200)
+                        .HasColumnType("character varying(1200)");
+
+                    b.Property<string>("Frequency")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateOnly>("NextDueDate")
+                        .HasColumnType("date");
+
+                    b.Property<int>("PropertyId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(160)
+                        .HasColumnType("character varying(160)");
+
+                    b.Property<DateTime>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApplianceId");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("PropertyId");
+
+                    b.ToTable("MaintenanceTasks");
+                });
+
             modelBuilder.Entity("HomeCarePH.Domain.Entities.Property", b =>
                 {
                     b.Property<int>("Id")
@@ -771,6 +893,62 @@ namespace HomeCarePH.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("HomeCarePH.Domain.Entities.MaintenanceCompletion", b =>
+                {
+                    b.HasOne("HomeCarePH.Domain.Entities.ApplicationUser", "CompletedByUser")
+                        .WithMany()
+                        .HasForeignKey("CompletedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("HomeCarePH.Domain.Entities.MaintenanceTask", "MaintenanceTask")
+                        .WithMany("Completions")
+                        .HasForeignKey("MaintenanceTaskId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CompletedByUser");
+
+                    b.Navigation("MaintenanceTask");
+                });
+
+            modelBuilder.Entity("HomeCarePH.Domain.Entities.MaintenanceExpense", b =>
+                {
+                    b.HasOne("HomeCarePH.Domain.Entities.MaintenanceCompletion", "MaintenanceCompletion")
+                        .WithMany("Expenses")
+                        .HasForeignKey("MaintenanceCompletionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("MaintenanceCompletion");
+                });
+
+            modelBuilder.Entity("HomeCarePH.Domain.Entities.MaintenanceTask", b =>
+                {
+                    b.HasOne("HomeCarePH.Domain.Entities.Appliance", "Appliance")
+                        .WithMany()
+                        .HasForeignKey("ApplianceId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("HomeCarePH.Domain.Entities.ApplicationUser", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("HomeCarePH.Domain.Entities.Property", "Property")
+                        .WithMany("MaintenanceTasks")
+                        .HasForeignKey("PropertyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Appliance");
+
+                    b.Navigation("CreatedByUser");
+
+                    b.Navigation("Property");
+                });
+
             modelBuilder.Entity("HomeCarePH.Domain.Entities.Property", b =>
                 {
                     b.HasOne("HomeCarePH.Domain.Entities.Household", "Household")
@@ -904,9 +1082,21 @@ namespace HomeCarePH.Migrations
                     b.Navigation("Residents");
                 });
 
+            modelBuilder.Entity("HomeCarePH.Domain.Entities.MaintenanceCompletion", b =>
+                {
+                    b.Navigation("Expenses");
+                });
+
+            modelBuilder.Entity("HomeCarePH.Domain.Entities.MaintenanceTask", b =>
+                {
+                    b.Navigation("Completions");
+                });
+
             modelBuilder.Entity("HomeCarePH.Domain.Entities.Property", b =>
                 {
                     b.Navigation("Appliances");
+
+                    b.Navigation("MaintenanceTasks");
 
                     b.Navigation("Photos");
 

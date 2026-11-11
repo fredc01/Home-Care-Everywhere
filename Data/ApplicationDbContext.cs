@@ -19,6 +19,9 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<PropertyRecord> PropertyRecords => Set<PropertyRecord>();
     public DbSet<Appliance> Appliances => Set<Appliance>();
     public DbSet<ApplianceDocument> ApplianceDocuments => Set<ApplianceDocument>();
+    public DbSet<MaintenanceTask> MaintenanceTasks => Set<MaintenanceTask>();
+    public DbSet<MaintenanceCompletion> MaintenanceCompletions => Set<MaintenanceCompletion>();
+    public DbSet<MaintenanceExpense> MaintenanceExpenses => Set<MaintenanceExpense>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -160,6 +163,39 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             entity.Property(x => x.DocumentType).HasConversion<string>().HasMaxLength(20);
             entity.Property(x => x.UploadedAtUtc).HasColumnType("timestamp with time zone");
             entity.HasOne(x => x.Appliance).WithMany(x => x.Documents).HasForeignKey(x => x.ApplianceId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<MaintenanceTask>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Title).HasMaxLength(160).IsRequired();
+            entity.Property(x => x.Description).HasMaxLength(1200);
+            entity.Property(x => x.Frequency).HasConversion<string>().HasMaxLength(20);
+            entity.Property(x => x.NextDueDate).HasColumnType("date");
+            entity.Property(x => x.CreatedAtUtc).HasColumnType("timestamp with time zone");
+            entity.Property(x => x.UpdatedAtUtc).HasColumnType("timestamp with time zone");
+            entity.HasOne(x => x.Property).WithMany(x => x.MaintenanceTasks).HasForeignKey(x => x.PropertyId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(x => x.Appliance).WithMany().HasForeignKey(x => x.ApplianceId).OnDelete(DeleteBehavior.SetNull);
+            entity.HasOne(x => x.CreatedByUser).WithMany().HasForeignKey(x => x.CreatedByUserId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<MaintenanceCompletion>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.CompletedAtUtc).HasColumnType("timestamp with time zone");
+            entity.Property(x => x.Notes).HasMaxLength(1200);
+            entity.HasOne(x => x.MaintenanceTask).WithMany(x => x.Completions).HasForeignKey(x => x.MaintenanceTaskId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(x => x.CompletedByUser).WithMany().HasForeignKey(x => x.CompletedByUserId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<MaintenanceExpense>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Amount).HasPrecision(12, 2);
+            entity.Property(x => x.Vendor).HasMaxLength(160);
+            entity.Property(x => x.Description).HasMaxLength(300);
+            entity.Property(x => x.ExpenseDateUtc).HasColumnType("timestamp with time zone");
+            entity.HasOne(x => x.MaintenanceCompletion).WithMany(x => x.Expenses).HasForeignKey(x => x.MaintenanceCompletionId).OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

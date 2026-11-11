@@ -36,4 +36,5 @@ public class Property
     public ICollection<PropertyPhoto> Photos { get; set; } = new List<PropertyPhoto>();
     public ICollection<PropertyRecord> Records { get; set; } = new List<PropertyRecord>();
     public ICollection<Appliance> Appliances { get; set; } = new List<Appliance>();
+    public ICollection<MaintenanceTask> MaintenanceTasks { get; set; } = new List<MaintenanceTask>();
 }
