@@ -13,6 +13,10 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<CareVisit> CareVisits => Set<CareVisit>();
     public DbSet<HouseholdMembership> HouseholdMemberships => Set<HouseholdMembership>();
     public DbSet<HouseholdInvitation> HouseholdInvitations => Set<HouseholdInvitation>();
+    public DbSet<Property> Properties => Set<Property>();
+    public DbSet<RoomSpace> RoomSpaces => Set<RoomSpace>();
+    public DbSet<PropertyPhoto> PropertyPhotos => Set<PropertyPhoto>();
+    public DbSet<PropertyRecord> PropertyRecords => Set<PropertyRecord>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -82,6 +86,53 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             entity.Property(x => x.CreatedAtUtc).HasColumnType("timestamp with time zone");
             entity.HasOne(x => x.Household).WithMany(x => x.Invitations).HasForeignKey(x => x.HouseholdId).OnDelete(DeleteBehavior.Cascade);
             entity.HasOne(x => x.InvitedByUser).WithMany().HasForeignKey(x => x.InvitedByUserId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<Property>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Name).HasMaxLength(150).IsRequired();
+            entity.Property(x => x.PropertyType).HasMaxLength(100);
+            entity.Property(x => x.AddressLine1).HasMaxLength(200);
+            entity.Property(x => x.City).HasMaxLength(100);
+            entity.Property(x => x.Province).HasMaxLength(100);
+            entity.Property(x => x.PostalCode).HasMaxLength(20);
+            entity.Property(x => x.Description).HasMaxLength(1200);
+            entity.Property(x => x.CreatedAtUtc).HasColumnType("timestamp with time zone");
+            entity.Property(x => x.UpdatedAtUtc).HasColumnType("timestamp with time zone");
+            entity.HasOne(x => x.Household).WithMany().HasForeignKey(x => x.HouseholdId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<RoomSpace>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Name).HasMaxLength(100).IsRequired();
+            entity.Property(x => x.SpaceType).HasMaxLength(80);
+            entity.Property(x => x.Description).HasMaxLength(500);
+            entity.Property(x => x.CreatedAtUtc).HasColumnType("timestamp with time zone");
+            entity.HasOne(x => x.Property).WithMany(x => x.Rooms).HasForeignKey(x => x.PropertyId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<PropertyPhoto>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.FileName).HasMaxLength(255).IsRequired();
+            entity.Property(x => x.StoredPath).HasMaxLength(500).IsRequired();
+            entity.Property(x => x.Caption).HasMaxLength(180);
+            entity.Property(x => x.ContentType).HasMaxLength(120);
+            entity.Property(x => x.UploadedAtUtc).HasColumnType("timestamp with time zone");
+            entity.HasOne(x => x.Property).WithMany(x => x.Photos).HasForeignKey(x => x.PropertyId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<PropertyRecord>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Title).HasMaxLength(160).IsRequired();
+            entity.Property(x => x.Notes).HasMaxLength(4000).IsRequired();
+            entity.Property(x => x.RecordType).HasMaxLength(80);
+            entity.Property(x => x.RecordedAtUtc).HasColumnType("timestamp with time zone");
+            entity.HasOne(x => x.Property).WithMany(x => x.Records).HasForeignKey(x => x.PropertyId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(x => x.CreatedByUser).WithMany().HasForeignKey(x => x.CreatedByUserId).OnDelete(DeleteBehavior.Restrict);
         });
     }
 }
