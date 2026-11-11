@@ -249,8 +249,22 @@ namespace HomeCarePH.Migrations
                     b.Property<int>("CaregiverId")
                         .HasColumnType("integer");
 
+                    b.Property<DateTime?>("CompletedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CompletionNotes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("ExpectedDurationMinutes")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Instructions")
+                        .HasMaxLength(1200)
+                        .HasColumnType("character varying(1200)");
 
                     b.Property<string>("Notes")
                         .HasMaxLength(500)
@@ -262,10 +276,16 @@ namespace HomeCarePH.Migrations
                     b.Property<DateTime>("ScheduledAtUtc")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<DateTime?>("StartedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(30)
                         .HasColumnType("character varying(30)");
+
+                    b.Property<DateTime>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 
@@ -276,6 +296,47 @@ namespace HomeCarePH.Migrations
                     b.ToTable("CareVisits");
                 });
 
+            modelBuilder.Entity("HomeCarePH.Domain.Entities.CaregiverAssignment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("AssignedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("CaregiverId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("EndedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("HouseholdId")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<int?>("ResidentId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CaregiverId", "HouseholdId", "ResidentId", "IsActive");
+
+                    b.HasIndex("HouseholdId");
+
+                    b.HasIndex("ResidentId");
+
+                    b.ToTable("CaregiverAssignments");
+                });
+
             modelBuilder.Entity("HomeCarePH.Domain.Entities.Caregiver", b =>
                 {
                     b.Property<int>("Id")
@@ -284,12 +345,20 @@ namespace HomeCarePH.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Availability")
+                        .HasMaxLength(1200)
+                        .HasColumnType("character varying(1200)");
+
                     b.Property<string>("ContactNumber")
                         .HasMaxLength(40)
                         .HasColumnType("character varying(40)");
 
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
 
                     b.Property<string>("FullName")
                         .IsRequired()
@@ -299,9 +368,25 @@ namespace HomeCarePH.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
+                    b.Property<string>("Notes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("Qualifications")
+                        .HasMaxLength(1200)
+                        .HasColumnType("character varying(1200)");
+
                     b.Property<string>("Role")
                         .HasMaxLength(120)
                         .HasColumnType("character varying(120)");
+
+                    b.Property<string>("Skills")
+                        .HasMaxLength(1200)
+                        .HasColumnType("character varying(1200)");
+
+                    b.Property<string>("Specializations")
+                        .HasMaxLength(1200)
+                        .HasColumnType("character varying(1200)");
 
                     b.HasKey("Id");
 
@@ -803,9 +888,20 @@ namespace HomeCarePH.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime?>("ArchivedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("ContactNumber")
                         .HasMaxLength(40)
                         .HasColumnType("character varying(40)");
+
+                    b.Property<string>("CareNotes")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)");
+
+                    b.Property<string>("CareRequirements")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
 
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("timestamp with time zone");
@@ -821,7 +917,22 @@ namespace HomeCarePH.Migrations
                     b.Property<int>("HouseholdId")
                         .HasColumnType("integer");
 
+                    b.Property<string>("EmergencyContactName")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<string>("EmergencyContactNumber")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<string>("EmergencyContactRelationship")
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
                     b.HasKey("Id");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
 
                     b.HasIndex("HouseholdId");
 
@@ -1120,6 +1231,30 @@ namespace HomeCarePH.Migrations
                     b.Navigation("RepairRequest");
 
                     b.Navigation("ServiceProvider");
+                });
+
+            modelBuilder.Entity("HomeCarePH.Domain.Entities.CaregiverAssignment", b =>
+                {
+                    b.HasOne("HomeCarePH.Domain.Entities.Caregiver", "Caregiver")
+                        .WithMany("Assignments")
+                        .HasForeignKey("CaregiverId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("HomeCarePH.Domain.Entities.Household", "Household")
+                        .WithMany()
+                        .HasForeignKey("HouseholdId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("HomeCarePH.Domain.Entities.Resident", "Resident")
+                        .WithMany()
+                        .HasForeignKey("ResidentId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("Caregiver");
+                    b.Navigation("Household");
+                    b.Navigation("Resident");
                 });
 
             modelBuilder.Entity("HomeCarePH.Domain.Entities.CareVisit", b =>
@@ -1440,6 +1575,11 @@ namespace HomeCarePH.Migrations
             modelBuilder.Entity("HomeCarePH.Domain.Entities.ApplicationUser", b =>
                 {
                     b.Navigation("HouseholdMemberships");
+                });
+
+            modelBuilder.Entity("HomeCarePH.Domain.Entities.Caregiver", b =>
+                {
+                    b.Navigation("Assignments");
                 });
 
             modelBuilder.Entity("HomeCarePH.Domain.Entities.Household", b =>

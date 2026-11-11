@@ -51,7 +51,7 @@ using (var scope = app.Services.CreateScope())
 
 if (!app.Environment.IsDevelopment()) { app.UseExceptionHandler("/Home/Error"); app.UseHsts(); }
 app.UseForwardedHeaders();
-app.UseHttpsRedirection();
+if (builder.Configuration.GetValue<int?>("HttpsRedirection:HttpsPort").HasValue) app.UseHttpsRedirection();
 app.Use(async (context, next) =>
 {
     context.Response.Headers["X-Content-Type-Options"] = "nosniff";

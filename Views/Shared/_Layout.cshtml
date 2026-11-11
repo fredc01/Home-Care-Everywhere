@@ -6,6 +6,8 @@
     <title>@ViewData["Title"] · HomeCarePH</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/care-team.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/care-visits.css" asp-append-version="true" />
 </head>
 <body>
     <div class="app-shell">
@@ -17,8 +19,9 @@
                 <a class="nav-link" asp-controller="Households" asp-action="Index"><span>⌂</span> Households</a>
                 <a class="nav-link" asp-controller="Marketplace" asp-action="Repairs"><span>⚒</span> Repairs</a>
                 <a class="nav-link" asp-controller="Marketplace" asp-action="Providers"><span>♧</span> Providers</a>
-                <a class="nav-link" href="#residents"><span>♥</span> Residents <span class="nav-soon">Soon</span></a>
-                <a class="nav-link" href="#care-team"><span>✦</span> Care team <span class="nav-soon">Soon</span></a>
+                <a class="nav-link" asp-controller="Residents" asp-action="Index"><span>♥</span> Residents</a>
+                <a class="nav-link" asp-controller="Caregivers" asp-action="Index"><span>✦</span> Care team</a>
+                <a class="nav-link" asp-controller="CareVisits" asp-action="Index"><span>↗</span> Visits</a>
             </nav>
             <div class="sidebar-footer"><div class="avatar">HC</div><div><b>HomeCarePH</b><small>Operations workspace</small></div></div>
         </aside>
